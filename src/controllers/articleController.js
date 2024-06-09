@@ -1,84 +1,65 @@
-const admin = require('firebase-admin'); // Tambahkan ini
-const db = require('../../config/firebase');
+const { db } = require('../../config/firebaseAdminConfig');
+const Article = require('../models/Article');
 
+
+// Menambahkan artikel baru
+exports.addArticle = async (req, res) => {
+  try {
+    const { title, content, author, tags } = req.body;
+    const newArticle = new Article(title, content, author, new Date(), tags);
+    const docRef = await db.collection('articles').add(JSON.parse(JSON.stringify(newArticle)));
+    res.status(201).send(`Article added with ID: ${docRef.id}`);
+  } catch (error) {
+    res.status(400).send(`Error adding article: ${error.message}`);
+  }
+};
+
+// Mendapatkan semua artikel
 exports.getAllArticles = async (req, res) => {
-    try {
-        const snapshot = await db.collection('articles').get();
-        const articles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        res.json(articles);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+  try {
+    const articlesSnapshot = await db.collection('articles').get();
+    const articles = articlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(articles);
+  } catch (error) {
+    res.status(400).send(`Error getting articles: ${error.message}`);
+  }
 };
 
+// Mendapatkan artikel berdasarkan ID
 exports.getArticleById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const doc = await db.collection('articles').doc(id).get();
-        if (doc.exists) {
-            res.json({ id: doc.id, ...doc.data() });
-        } else {
-            res.status(404).send('Article not found');
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+  try {
+    const { id } = req.params;
+    const doc = await db.collection('articles').doc(id).get();
+    if (!doc.exists) {
+      res.status(404).send('Article not found');
+    } else {
+      res.status(200).json({ id: doc.id, ...doc.data() });
     }
+  } catch (error) {
+    res.status(400).send(`Error getting article: ${error.message}`);
+  }
 };
 
-exports.createArticle = async (req, res) => {
-    try {
-        const { title, content, author } = req.body;
-        const newArticle = {
-            title,
-            content,
-            author,
-            createdAt: admin.firestore.FieldValue.serverTimestamp() // Gunakan admin.firestore.FieldValue
-        };
-        const docRef = await db.collection('articles').add(newArticle);
-        res.status(201).json({ id: docRef.id, ...newArticle });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-};
-
+// Memperbarui artikel
 exports.updateArticle = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, content, author } = req.body;
-        const updatedArticle = {
-            title,
-            content,
-            author,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp() // Gunakan admin.firestore.FieldValue
-        };
-        const doc = await db.collection('articles').doc(id).get();
-        if (doc.exists) {
-            await db.collection('articles').doc(id).update(updatedArticle);
-            res.json({ id, ...updatedArticle });
-        } else {
-            res.status(404).send('Article not found');
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+  try {
+    const { id } = req.params;
+    const { title, content, author, tags } = req.body;
+    const updatedArticle = { title, content, author, tags, timestamp: new Date() };
+    await db.collection('articles').doc(id).update(updatedArticle);
+    res.status(200).send('Article updated successfully');
+  } catch (error) {
+    res.status(400).send(`Error updating article: ${error.message}`);
+  }
 };
 
+// Menghapus artikel
 exports.deleteArticle = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const doc = await db.collection('articles').doc(id).get();
-        if (doc.exists) {
-            await db.collection('articles').doc(id).delete();
-            res.status(204).send();
-        } else {
-            res.status(404).send('Article not found');
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+  try {
+    const { id } = req.params;
+    await db.collection('articles').doc(id).delete();
+    res.status(200).send('Article deleted successfully');
+  } catch (error) {
+    res.status(400).send(`Error deleting article: ${error.message}`);
+  }
 };

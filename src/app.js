@@ -1,21 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const routes = require('./routes'); // Pastikan jalur ini benar
-const db = require('../config/firebase');
-
-require('dotenv').config();
-
-const userRoutes = require('./routes/users');
+const profileRoutes = require('./routes/profile');
+const articlesRoutes = require('./routes/articles');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-// Middleware
 app.use(bodyParser.json());
 
-// Routes
-app.use('/api', userRoutes);
+app.use('/api', profileRoutes);
+app.use('/api', articlesRoutes);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

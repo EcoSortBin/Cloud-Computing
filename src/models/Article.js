@@ -1,22 +1,11 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/firebase');
-
-const Article = sequelize.define('Article', {
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    content: {
-        type: DataTypes.TEXT,
-        allowNull: false
-    },
-    author: {
-        type: DataTypes.STRING,
-        allowNull: false
+class Article {
+    constructor(title, content, author, timestamp, tags) {
+      this.title = title;
+      this.content = content;
+      this.author = author;
+      this.timestamp = timestamp;
+      this.tags = tags;
     }
-}, {
-    tableName: 'articles',
-    timestamps: true
-});
-
-module.exports = Article;
+  }
+  
+  module.exports = Article;
